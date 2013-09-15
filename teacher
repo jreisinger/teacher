@@ -152,13 +152,14 @@ for ( my $i = 1 ; $i <= $phrase_n ; $i++ )
             if ( not $redoing )
             {
                 you_know_this( $phrase, $learned );
-                $redoing = 0;
             }
+            $redoing = 0;
         }
         elsif ( $hint eq 'done' )
         {
             print "\nIt's '" . $phrases->{$phrase}{foreign} . "'\n\n";
             $hint = '';
+            $redoing = 0;
         }
         else
         {
