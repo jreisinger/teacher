@@ -5,6 +5,7 @@ use warnings;
 use 5.010;    # state
 use Cwd qw(abs_path);
 use File::Basename qw(dirname basename);
+use List::Util qw(shuffle);
 
 # How many phrases you wanna try
 my $phrase_n = $ARGV[0] // 3;
@@ -122,51 +123,56 @@ sub know_this_already
 my $phrases         = readin_phrases;            # ref to HoH
 my $learned_phrases = readin_learned_phrases;    # aref
 
-# Let's got throught some randomly picked phrases
-my $ok = 0;
-my ( $hint, $redoing );
-for ( my $i = 1 ; $i <= $phrase_n ; $i++ )
+# Remove phrases we know already
+# http://www.perlmonks.org/?node_id=153402
+for ( keys %$phrases )
 {
-    for my $phrase ( ( keys %$phrases )[ rand keys %$phrases ] )
+    for my $learned (@$learned_phrases)
     {
-
-        # Don't repeat the phrases during a single program's invocation and
-        # don't ask stuff we've already learned
-        if ( $phrases->{$phrase}{seen}
-            or know_this_already( $phrase, $learned_phrases ) )
+        if ( $learned eq $_ )
         {
-            $i--;
-            next;
-        }
-
-        print $phrase, ' (', $hint // '', ') ', ' > ';
-
-        chomp( my $input = <STDIN> );
-        $hint = eval_word( $phrases->{$phrase}{foreign}, $input );
-        if ( $hint eq 'ok' )
-        {
-            print "\nThat's it!\n\n";
-            $ok++;
-            $phrases->{$phrase}{seen} = 1;
-            $hint = '';
-            if ( not $redoing )
-            {
-                you_know_this( $phrase, $learned );
-            }
-            $redoing = 0;
-        }
-        elsif ( $hint eq 'done' )
-        {
-            print "\nIt's '" . $phrases->{$phrase}{foreign} . "'\n\n";
-            $hint = '';
-            $redoing = 0;
-        }
-        else
-        {
-            $redoing++;
-            redo;
+            delete $phrases->{$_};
         }
     }
 }
 
-print "You got right $ok out of $phrase_n\n";
+# Let's got throught some randomly picked phrases
+my $ok = 0;
+my $i  = 0;
+my ( $hint, $redoing );
+for my $phrase ( shuffle keys %$phrases )
+{
+    ## redo comes here
+    print $phrase, ' (', $hint // '', ') ', ' > ';
+
+    chomp( my $input = <STDIN> );
+    $hint = eval_word( $phrases->{$phrase}{foreign}, $input );
+    if ( $hint eq 'ok' )
+    {
+        print "\nThat's it!\n\n";
+        $ok++;
+        $hint = '';
+        if ( not $redoing )
+        {
+            you_know_this( $phrase, $learned );
+        }
+        $redoing = 0;
+    }
+    elsif ( $hint eq 'done' )
+    {
+        print "\nIt's '" . $phrases->{$phrase}{foreign} . "'\n\n";
+        $hint    = '';
+        $redoing = 0;
+    }
+    else
+    {
+        $redoing++;
+        redo;
+    }
+
+    last if ++$i > $phrase_n;
+}
+## last comes here
+
+print "I have no more phrases for you ...\n";
+print "You got right $ok out of $i\n";
