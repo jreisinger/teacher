@@ -170,7 +170,7 @@ for my $phrase ( shuffle keys %$phrases )
         redo;
     }
 
-    last if ++$i > $phrase_n;
+    last if ++$i >= $phrase_n;
 }
 ## last comes here
 
