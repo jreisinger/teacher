@@ -1,6 +1,10 @@
 # Some <nice> phrase. <nice-in-your-local-language>
 # Seperate phrases with two new lines ("\n\n")
 
+Code like that--where an error is reported in an entirely different part of the 
+program from where it actually occurred--is particulary <onerous> to debug. 
+<náročný, nepríjemný>
+
 ... it's one of the most <contentious> aspects of ... <kontroverzný>
 
 Command-line interfaces have a strong tendency to grow over time, <accreting> 
