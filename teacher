@@ -18,6 +18,12 @@ my $progname = basename($0);
 $progname =~ s/(.*)/.$1/;
 my $learned = $ENV{HOME} . '/' . $progname;
 
+# Create file if it does not exist
+unless ( -e $learned ) {
+    open my $fh, '>', $learned or die "Can't create $learned: $!";
+    close $fh;
+}
+
 ########################
 sub readin_phrases
 ########################
@@ -32,8 +38,7 @@ sub readin_phrases
     die "You don't have that many phrases\n" if $phrase_n > @phrases;
     my %phrases;
 
-    for (@phrases)
-    {
+    for (@phrases) {
         next if /^#/;
         chomp;
         /<([^>]+)>[^<]+<([^>]+)>/;
@@ -72,13 +77,11 @@ sub eval_word
     {
         $length = 0;
         return 'ok';
-    }
-    elsif ( length($foreign) == $length )    # are we done yet?
+    } elsif ( length($foreign) == $length )    # are we done yet?
     {
         $length = 0;
         return 'done';
-    }
-    else                                     # hint
+    } else                                     # hint
     {
         return
           substr( $foreign, 0, $length++ )
@@ -106,12 +109,9 @@ sub know_this_already
     # Check whether you knew this phrase
     my ( $phrase, $learned_phrases ) = @_;
 
-    if ( grep $phrase eq $_, @$learned_phrases )
-    {
+    if ( grep $phrase eq $_, @$learned_phrases ) {
         return 1;
-    }
-    else
-    {
+    } else {
         return 0;
     }
 }
@@ -125,12 +125,9 @@ my $learned_phrases = readin_learned_phrases;    # aref
 
 # Remove phrases we know already
 # http://www.perlmonks.org/?node_id=153402
-for ( keys %$phrases )
-{
-    for my $learned (@$learned_phrases)
-    {
-        if ( $learned eq $_ )
-        {
+for ( keys %$phrases ) {
+    for my $learned (@$learned_phrases) {
+        if ( $learned eq $_ ) {
             delete $phrases->{$_};
         }
     }
@@ -140,32 +137,25 @@ for ( keys %$phrases )
 my $ok = 0;
 my $i  = 0;
 my ( $hint, $redoing );
-for my $phrase ( shuffle keys %$phrases )
-{
+for my $phrase ( shuffle keys %$phrases ) {
     ## redo comes here
     print $phrase, ' (', $hint // '', ') ', ' > ';
 
     chomp( my $input = <STDIN> );
     $hint = eval_word( $phrases->{$phrase}{foreign}, $input );
-    if ( $hint eq 'ok' )
-    {
+    if ( $hint eq 'ok' ) {
         print "\nThat's it!\n\n";
         $ok++;
         $hint = '';
-        if ( not $redoing )
-        {
+        if ( not $redoing ) {
             you_know_this( $phrase, $learned );
         }
         $redoing = 0;
-    }
-    elsif ( $hint eq 'done' )
-    {
+    } elsif ( $hint eq 'done' ) {
         print "\nIt's '" . $phrases->{$phrase}{foreign} . "'\n\n";
         $hint    = '';
         $redoing = 0;
-    }
-    else
-    {
+    } else {
         $redoing++;
         redo;
     }
